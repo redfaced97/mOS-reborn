@@ -1,8 +1,13 @@
 
+
+
+#include "stddef.h"
+#include "stdint.h"
+
 #include "io.h"
 #include "time.h"
 
-extern u64 startup_time;
+extern uint64_t startup_time;
 
 struct tm t;
 

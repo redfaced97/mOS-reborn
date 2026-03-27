@@ -1,8 +1,10 @@
 #include "time.h"
+#include "stdint.h"
 
+// Системное время запуска
+uint64_t startup_time;
 
-u64 startup_time;
-
+// ЭтоВысокостныйГод?
 static int is_leap(int y) {
     int year = y + 1970;
     return (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0));
@@ -26,20 +28,20 @@ void get_system_time(struct tm *time) {
     time->mon--;
 }
 
-u64 unix_time(struct tm *t)
-{
+uint64_t unix_time(struct tm *t) {
     static const int mdays[] = {
-        31,28,31,30,31,30,31,31,30,31,30,31
+        31, 28, 31, 30, 31, 30,
+        31, 31, 30, 31, 30, 31
     };
 
     int y = t->year;
     int m = t->mon;
 
-    u64 total_days =
-        (u64)y * 365ULL
-        + (u64)((y + 3) / 4)
-        - (u64)((y + 69) / 100)
-        + (u64)((y + 369) / 400);
+    uint64_t total_days =
+        (uint64_t)y * 365ULL
+        + (uint64_t)((y + 3) / 4)
+        - (uint64_t)((y + 69) / 100)
+        + (uint64_t)((y + 369) / 400);
 
     for (int i = 0; i < m; i++)
         total_days += mdays[i];
@@ -50,7 +52,7 @@ u64 unix_time(struct tm *t)
     total_days += (t->day - 1);
 
     return total_days * 86400ULL +
-           (u64)t->hour * 3600ULL +
-           (u64)t->min * 60ULL +
-           (u64)t->sec;
+           (uint64_t)t->hour * 3600ULL +
+           (uint64_t)t->min * 60ULL +
+           (uint64_t)t->sec;
 }
