@@ -3,7 +3,7 @@ CC = gcc
 AS = nasm
 LD = ld
 
-CFLAGS = -m32 -ffreestanding -O2 -Wall -Wextra -nostdlib -nostdinc -fno-builtin -fno-stack-protector
+CFLAGS = -m32 -ffreestanding -O2 -Wall -Wextra -nostdlib -nostdinc -fno-builtin -fno-stack-protector -Iinclude -g
 LDFLAGS = -m elf_i386 -T linker.ld
 
 C_SOURCES := $(shell find . -name "*.c")
@@ -32,5 +32,4 @@ clean:
 	rm -rf $(OBJECTS) $(TARGET)
 
 run: $(TARGET)
-	qemu-system-i386 -kernel $(TARGET) -m 256 --enable-kvm -monitor stdio
-
+	qemu-system-i386 -m 256M -kernel $(TARGET) -monitor stdio
