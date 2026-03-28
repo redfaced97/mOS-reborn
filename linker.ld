@@ -1,27 +1,30 @@
-ENTRY(init)
+OUTPUT_FORMAT(elf32-i386)
+ENTRY(_start)
 
-SECTIONS
-{
-    . = 1M;
+SECTIONS {
+    . = 0x100000;
 
-    .text :
-    {
+    .text : {
         *(.multiboot)
-	*(.text*)
-    }
+	*(.text)
+    } :text
 
-    .rodata :
-    {
-        *(.rodata*)
-    }
+    .data : {
+        *(.data)
+    } :data
 
-    .data :
-    {
-        *(.data*)
-    }
+    .bss : {
+        *(.bss)
+    } :bss
 
-    .bss :
-    {
-        *(.bss*)
+    /DISCARD/ : {
+        *(.comment)
+	*(.eh_frame)
     }
+}
+
+PHDRS {
+    text PT_LOAD FLAGS(5); /* R-X */
+    data PT_LOAD FLAGS(6); /* RW- */
+    bss  PT_LOAD FLAGS(6); /* RW- */
 }

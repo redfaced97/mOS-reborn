@@ -1,23 +1,22 @@
-
-
-bits 32  ; 32 битная директирова для компилятора
+bits 32
 
 section .text
-        align 4
-	dd 0x1BADB002             ; MultiBoot заголовок
-	dd 0x00                   ; Флаги
-	dd - (0x1BADB002 + 0x00)  ; Контрольная сумма
+    align 4
+    dd 0x1BADB002             ; Multiboot magic
+    dd 0x03                   ; flags: ALIGN (1) + MEMINFO (2) = 3
+    dd -(0x1BADB002 + 0x03)   ; checksum
 
-global init
+global _start
 extern kinit
 
-init:
-  cli
-  mov esp, stack_space
-  call kinit
-  hlt
+_start:
+    cli
+    mov esp, stack_space
+    push ebx          ; addr (multiboot_info)
+    push eax          ; magic
+    call kinit
+    hlt
 
 section .bss
-
 resb 8192
 stack_space:
