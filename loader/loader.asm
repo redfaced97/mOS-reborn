@@ -18,5 +18,5 @@ _start:
     hlt
 
 section .bss
-resb 8192
+resb 32768
 stack_space:
