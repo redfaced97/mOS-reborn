@@ -1,61 +1,97 @@
 #include "multiboot.h"
 #include "io.h"
 
-#include "stddef.h"
-#include "stdint.h"
+#include <stdint.h>
+
+#define MB_FLAG_MEM       (1 << 0)
+#define MB_FLAG_BOOTDEV   (1 << 1)
+#define MB_FLAG_CMDLINE   (1 << 2)
+
+typedef struct {
+    uint8_t bios_drive;   // Чтение из BIOS диска аля 0x8*
+    uint8_t partition;
+    uint8_t subpartition;
+    uint16_t root_dev;    // Под Lionux (0x301)
+} boot_info_t;
+
+boot_info_t boot_info;
+
+static uint16_t parse_root_from_cmdline(char *cmd) {
+    if (!cmd) return 0;
+
+    char *p = cmd;
+
+    while (*p) {
+        if (p[0]=='r' && p[1]=='o' && p[2]=='o' && p[3]=='t' && p[4]=='=') {
+            p += 5;
+
+            if (*p == '0' && (p[1]=='x' || p[1]=='X')) p += 2;
+
+            uint16_t val = 0;
+
+            while ((*p >= '0' && *p <= '9') ||
+                   (*p >= 'a' && *p <= 'f') ||
+                   (*p >= 'A' && *p <= 'F')) {
+
+                char c = *p;
+
+                if (c >= '0' && c <= '9') val = (val << 4) | (c - '0');
+                else if (c >= 'a' && c <= 'f') val = (val << 4) | (c - 'a' + 10);
+                else if (c >= 'A' && c <= 'F') val = (val << 4) | (c - 'A' + 10);
+
+                p++;
+            }
+
+            return val;
+        }
+        p++;
+    }
+
+    return 0;
+}
 
 void multiboot_init(uint32_t magic, uint32_t addr) {
-    if (magic != MULTIBOOT_MAGIC)
-        return;
+
+    if (magic != 0x2BADB002) {
+        char* msg = "NO MULTIBOOT!";
+        for (int i = 0; msg[i]; i++) {
+            ((uint16_t*)0xB8000)[i] = (0x04 << 8) | msg[i];
+        }
+        for (;;) asm volatile ("hlt");
+    }
 
     multiboot_info_t *mbi = (multiboot_info_t *)addr;
 
-    if (mbi->flags & MB_INFO_MEMORY) {
+    if (mbi->flags & MB_FLAG_MEM) {
         write_word(0x90002, (uint16_t)mbi->mem_upper);
     }
 
-    unsigned short root_dev = 0x301;
-    if (mbi->flags & MB_INFO_CMDLINE) {
-        char *cmd = (char *)mbi->cmdline;
-        char *p = cmd;
-        while (*p) {
-            if (p[0]=='r' && p[1]=='o' && p[2]=='o' && p[3]=='t' && p[4]=='=') {
-                p += 5;
-                if (*p == '0' && (p[1]=='x' || p[1]=='X')) p += 2;
-                unsigned short val = 0;
-                while ((*p >= '0' && *p <= '9') ||
-                       (*p >= 'a' && *p <= 'f') ||
-                       (*p >= 'A' && *p <= 'F')) {
-                    char c = *p;
-                    if (c >= '0' && c <= '9') val = (val << 4) | (c - '0');
-                    else if (c >= 'a' && c <= 'f') val = (val << 4) | (c - 'a' + 10);
-                    else if (c >= 'A' && c <= 'F') val = (val << 4) | (c - 'A' + 10);
-                    p++;
-                }
-                root_dev = val;
-                break;
-            }
-            p++;
-        }
-    }
-    write_word(0x901FC, root_dev);
+    boot_info.bios_drive = 0;
+    boot_info.partition  = 0;
+    boot_info.subpartition = 0;
+    boot_info.root_dev   = 0x301; // Режим failback
 
-    if ((mbi->flags & MB_INFO_DRIVES) && mbi->drives_count > 0) {
-        multiboot_drive_t *drv = (multiboot_drive_t *)mbi->drives_addr;
-        for (uint32_t i = 0; i < mbi->drives_count; i++) {
-            if (drv->drive_number == 0x80) {
-                unsigned char data[4];
-                data[0] = drv->drive_cylinders & 0xFF;
-                data[1] = (drv->drive_cylinders >> 8) & 0xFF;
-                data[2] = drv->drive_heads;
-                data[3] = drv->drive_sectors;
-                write_bytes(0x90080, data, 4);
-                break;
-            }
-            drv = (multiboot_drive_t *)((char *)drv + drv->size);
-        }
-    } else {
-        unsigned char zero[4] = {0};
-        write_bytes(0x90080, zero, 4);
+    // --- CMDLINE (приоритет выше) ---
+    if (mbi->flags & MB_FLAG_CMDLINE) {
+        uint16_t cmd_root = parse_root_from_cmdline((char*)mbi->cmdline);
+        if (cmd_root)
+            boot_info.root_dev = cmd_root;
     }
+
+    if (mbi->flags & MB_FLAG_BOOTDEV) {
+        uint32_t bd = mbi->boot_device;
+
+        boot_info.bios_drive  = (bd >> 24) & 0xFF;
+        boot_info.partition   = (bd >> 16) & 0xFF;
+        boot_info.subpartition = (bd >> 8) & 0xFF;
+
+        // Формирование DID (Drive ID)
+        if (boot_info.bios_drive == 0x80) {
+            boot_info.root_dev = 0x301 + boot_info.partition;
+        }
+    }
+
+    write_word(0x901FC, boot_info.root_dev);
+
+    write_word(0x90000, boot_info.bios_drive);
 }
