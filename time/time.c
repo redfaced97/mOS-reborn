@@ -35,7 +35,7 @@ uint64_t unix_time(struct tm *t) {
     };
 
     int y = t->year;
-    int m = t->mon;
+    int m = t->mon += 1;
 
     uint64_t total_days =
         (uint64_t)y * 365ULL

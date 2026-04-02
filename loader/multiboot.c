@@ -1,7 +1,7 @@
-#include "multiboot.h"
-#include "io.h"
 
-#include <stdint.h>
+#include <multiboot.h>
+#include <io.h>
+
 
 #define MB_FLAG_MEM       (1 << 0)
 #define MB_FLAG_BOOTDEV   (1 << 1)
@@ -11,7 +11,7 @@ typedef struct {
     uint8_t bios_drive;   // Чтение из BIOS диска аля 0x8*
     uint8_t partition;
     uint8_t subpartition;
-    uint16_t root_dev;    // Под Lionux (0x301)
+    uint16_t root_dev;    // Под Linux (0x301)
 } boot_info_t;
 
 boot_info_t boot_info;
@@ -57,7 +57,7 @@ void multiboot_init(uint32_t magic, uint32_t addr) {
         for (int i = 0; msg[i]; i++) {
             ((uint16_t*)0xB8000)[i] = (0x04 << 8) | msg[i];
         }
-        for (;;) asm volatile ("hlt");
+        __asm__ volatile ("hlt");
     }
 
     multiboot_info_t *mbi = (multiboot_info_t *)addr;
@@ -91,7 +91,25 @@ void multiboot_init(uint32_t magic, uint32_t addr) {
         }
     }
 
-    write_word(0x901FC, boot_info.root_dev);
+    printk(" < ==============================[ Kernel log ]============================== >\n\n");
+    printk("Kernel boot successfully! Start initialization...\n");
+    printk("cmdline: %s\n", mbi->cmdline);
+}
 
-    write_word(0x90000, boot_info.bios_drive);
+uint16_t mb_get_root(multiboot_info_t *mbi) {
+    uint16_t root_dev = 0x301;
+
+    if (mbi->flags & (1 << 1)) {
+        uint32_t bd = mbi->boot_device;
+        uint8_t bios_drive = (bd >> 24) & 0xFF;
+        uint8_t part = (bd >> 16) & 0xFF;
+
+        if (bios_drive == 0x80) {
+            root_dev = 0x301 + part;
+        }
+    }
+
+    printk("root_dev: 0x%x\n\n", root_dev);
+
+    return root_dev;
 }

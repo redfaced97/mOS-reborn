@@ -35,15 +35,14 @@ clean:
 	rm -rf $(OBJECTS) $(TARGET)
 
 run: $(TARGET)
-	qemu-system-i386 -m 256M -kernel $(TARGET) -monitor stdio
-
+	qemu-system-x86_64 -m 48M -kernel $(TARGET) -monitor stdio
 
 iso: $(TARGET)
 	@mkdir -p $(ISO_DIR)/boot/grub
 	@cp $(TARGET) $(ISO_DIR)/boot/mOS_kernel
 	@echo 'set timeout=5' > $(ISO_DIR)/boot/grub/grub.cfg
 	@echo 'set default=0' >> $(ISO_DIR)/boot/grub/grub.cfg
-	@echo 'menuentry "mOS" {' >> $(ISO_DIR)/boot/grub/grub.cfg
+	@echo 'menuentry "mOS kernel" {' >> $(ISO_DIR)/boot/grub/grub.cfg
 	@echo '    multiboot /boot/mOS_kernel' >> $(ISO_DIR)/boot/grub/grub.cfg
 	@echo '    boot' >> $(ISO_DIR)/boot/grub/grub.cfg
 	@echo '}' >> $(ISO_DIR)/boot/grub/grub.cfg
@@ -51,4 +50,4 @@ iso: $(TARGET)
 	@rm -rf $(ISO_DIR)
 
 run-iso: iso
-	qemu-system-i386 -cdrom $(ISO_FILE) -m 256M -monitor stdio --enable-kvm
+	sudo qemu-system-x86_64 -cdrom $(ISO_FILE) -m 48M -monitor stdio --enable-kvm

@@ -16,7 +16,7 @@
 #define BCD_TO_BIN(val) (((val) & 0x0F) + (((val) >> 4) * 10))
 
 struct tm {
-    uint32_t  sec;
+    uint32_t sec;
     uint32_t min;
     uint32_t hour;
     uint32_t day;

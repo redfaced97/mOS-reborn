@@ -2,6 +2,7 @@
 #define MULTIBOOT_H
 
 #include "stdint.h"
+#include "vsprintf.h"
 
 #define MULTIBOOT_MAGIC 0x2BADB002
 #define MB_INFO_MEMORY  (1 << 0)
@@ -33,5 +34,6 @@ typedef struct {
 } multiboot_drive_t;
 
 void multiboot_init(uint32_t magic, uint32_t addr);
+uint16_t mb_get_root(multiboot_info_t *mbi);
 
 #endif
