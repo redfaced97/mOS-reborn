@@ -1,8 +1,8 @@
 #ifndef MULTIBOOT_H
 #define MULTIBOOT_H
 
-#include "stdint.h"
-#include "vsprintf.h"
+#include <std/stdint.h>
+#include <vsprintf.h>
 
 #define MULTIBOOT_MAGIC 0x2BADB002
 #define MB_INFO_MEMORY  (1 << 0)

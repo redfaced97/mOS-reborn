@@ -1,8 +1,8 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 
-#include <stdint.h>
-#include <string.h>
+#include <std/stdint.h>
+#include <std/string.h>
 #include <vsprintf.h>
 
 

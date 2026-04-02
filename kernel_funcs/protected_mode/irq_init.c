@@ -1,5 +1,5 @@
-#include "idt.h"
-#include "irq.h"
+#include <protected/idt.h>
+#include <protected/irq.h>
 
 extern void irq0_stub();
 extern void irq1_stub();

@@ -1,4 +1,4 @@
-#include <gdt.h>
+#include <protected/gdt.h>
 
 struct gdt_entry gdt[3];
 struct gdt_ptr gp;

@@ -1,5 +1,5 @@
 
-#include <idt.h>
+#include <protected/idt.h>
 
 struct idt_entry idt[256];
 struct idt_ptr idtp;

@@ -1,11 +1,19 @@
 
-#include "vsprintf.h"
-
-/* ================= VGA CONSOLE ================= */
+#include <vsprintf.h>
 
 #define VGA_MEMORY ((volatile unsigned short*)0xB8000)
 #define VGA_WIDTH 80
 #define VGA_HEIGHT 25
+
+#define is_digit(c) ((c) >= '0' && (c) <= '9')
+
+#define ZEROPAD  1
+#define SIGN     2
+#define PLUS     4
+#define SPACE    8
+#define LEFT     16
+#define SMALL    32
+
 
 static int cursor_x = 0;
 static int cursor_y = 0;
@@ -35,6 +43,18 @@ static void scroll() {
     for (int x = 0; x < VGA_WIDTH; x++) {
         video[(VGA_HEIGHT - 1) * VGA_WIDTH + x] =
             (0x07 << 8) | ' ';
+    }
+}
+
+void vga_cursor(uint32_t state) {
+    if (state) {
+        outb(0x3D4, 0x0A);
+        outb(0x3D5, 14);
+        outb(0x3D4, 0x0B);
+        outb(0x3D5, 15);
+    } else {
+        outb(0x3D4, 0x0A);
+        outb(0x3D5, 0x20);
     }
 }
 
@@ -68,16 +88,6 @@ static void console_write(const char *s) {
     }
 }
 
-/* ================= VSPRINTF ================= */
-
-#define is_digit(c) ((c) >= '0' && (c) <= '9')
-
-#define ZEROPAD  1
-#define SIGN     2
-#define PLUS     4
-#define SPACE    8
-#define LEFT     16
-#define SMALL    32
 
 
 static int skip_atoi(const char **s) {
@@ -238,8 +248,6 @@ int vsprintf(char *buf, const char *fmt, va_list args) {
     *str = '\0';
     return str - buf;
 }
-
-/* ================= SPRING / PRINTK ================= */
 
 int sprintf(char *buf, const char *fmt, ...) {
     va_list args;

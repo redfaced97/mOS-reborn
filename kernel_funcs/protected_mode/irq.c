@@ -1,6 +1,6 @@
 
-#include <irq.h>
-#include <pic.h>
+#include <protected/irq.h>
+#include <protected/pic.h>
 
 static irq_handler_t handlers[16] = {0};
 

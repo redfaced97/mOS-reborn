@@ -1,9 +1,9 @@
 #ifndef TIME_H
 #define TIME_H
 
-#include "stddef.h"
-#include "stdint.h"
-#include "io.h"
+#include <std/stddef.h>
+#include <std/stdint.h>
+#include <io.h>
 
 #define CMOS_ADDR 0x70
 #define CMOS_DATA 0x71

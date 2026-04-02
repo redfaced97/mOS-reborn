@@ -1,5 +1,5 @@
-#include "time.h"
-#include "stdint.h"
+#include <time.h>
+#include <std/stdint.h>
 
 // Системное время запуска
 uint64_t startup_time;

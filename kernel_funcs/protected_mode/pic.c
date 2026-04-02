@@ -1,4 +1,4 @@
-#include <pic.h>
+#include <protected/pic.h>
 
 void pic_remap(void) {
     uint8_t a1 = inb(PIC1_DATA);

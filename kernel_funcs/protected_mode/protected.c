@@ -1,5 +1,5 @@
 
-#include <protected.h>
+#include <protected/protected.h>
 
 void protected_mode(void) {
 
