@@ -1,0 +1,44 @@
+
+#include <protected/irq.h>
+#include <protected/pic.h>
+
+static irq_handler_t handlers[16] = {0};
+
+void irq_install_handler(uint32_t irq, irq_handler_t handler) {
+    if (irq < 16)
+        handlers[irq] = handler;
+}
+
+void irq_handler_c(struct irq_context *ctx) {
+    uint32_t irq = ctx->irq_no;
+    volatile unsigned short *vga = (volatile unsigned short*)0xB8000;
+
+if (irq == 0) {
+    // ТАЙМЕР: зеленая 'T'
+    vga[0] = (0x2F << 8) | 'T';
+}
+else if (irq == 1) {
+    // КЛАВИАТУРА: синяя 'K'
+    vga[1] = (0x1F << 8) | 'K';
+
+    // КРИТИЧЕСКИ ВАЖНО: Читаем порт данных клавиатуры!
+    // Это очистит буфер контроллера и разрешит ему генерировать новые IRQ1.
+    uint8_t scancode = inb(0x60);
+
+    // Давай сделаем интерактивный дебаг: будем выводить скан-код первой цифрой на экране
+    // Переводим младшие 4 бита скан-кода в шестнадцатеричный символ (0-F)
+    char hex_char = "0123456789ABCDEF"[scancode & 0x0F];
+    vga[2] = (0x4F << 8) | hex_char; // Выводим на 3-ю позицию экрана красный символ
+}
+
+    // Правильный EOI для PIC
+    if (irq >= 8) {
+        outb(0xA0, 0x20);
+    }
+    outb(0x20, 0x20);
+}
+
+void irq_enable(uint32_t irq) {
+    if (irq < 16)
+        pic_clear_mask(irq);
+}
