@@ -12,7 +12,6 @@ static const char kbd_us[128] = {
     'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 0, '*', 0, ' '
 };
 
-// обработчик клавиатуры
 void keyboard_handler(uint32_t irq) {
     (void)irq;
 
