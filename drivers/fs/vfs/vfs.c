@@ -144,11 +144,9 @@ void init_vfs() {
         while (off < size && data[off] != '\0') {
             char *fname = (char*)(data + off);
 
-            // Убираем ./
             if (fname[0] == '.' && fname[1] == '/')
                 fname += 2;
 
-            // Размер файла (октальное)
             char *sz = (char*)(data + off + 124);
             uint32_t fsize = 0;
             while (*sz >= '0' && *sz <= '7')
@@ -159,7 +157,7 @@ void init_vfs() {
             if (namelen > 0 && fname[namelen-1] == '/')
                 fname[namelen-1] = '\0';
 
-            printk("[%s] size=%d\n", fname, fsize);   // ← отладка
+            printk("[%s] size=%d\n", fname, fsize);
 
             vfs_node_t *node = vfs_create_node(fname, type, NULL);
             if (type == VFS_FILE) {
